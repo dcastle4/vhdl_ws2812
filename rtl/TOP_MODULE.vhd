@@ -6,15 +6,15 @@ use ieee.numeric_std.all;
 entity TOP_MODULE is
 	port(
 		 clk:	in std_logic;
-		 btnC:	in std_logic;
+		 --btnC:	in std_logic;
 		 btnU:	in std_logic;
 		 btnD:	in std_logic;
 		 btnL:	in std_logic;
 		 btnR:	in std_logic;
 		 sw:	in std_logic_vector(15 downto 0);
-		 seg:	in std_logic_vector(6 downto 0);
-		 an:	in std_logic_vector(3 downto 0);
-		 JB:	in std_logic_vector(0 downto 0)
+		 seg:	out std_logic_vector(6 downto 0);
+		 an:	out std_logic_vector(3 downto 0);
+		 JA:	out std_logic_vector(7 downto 7)
 
 	    );
 end TOP_MODULE;
@@ -36,14 +36,14 @@ architecture topArch of TOP_MODULE is
 
 
 	signal numACTIVELEDS: integer range 1 to 8 := 1;
-	signal reset: std_logic;
+	signal reset: std_logic := '0';
 	signal color: std_logic_vector(23 downto 0);
 	signal previewcolor: std_logic_vector(23 downto 0);
 	signal previewenable: std_logic := '0';
 	signal rgbSignal: std_logic_vector(24*numLEDS-1 downto 0);
 	signal rgbBuild: std_logic_vector(24*numLEDS-1 downto 0);
 	signal rgbFade: unsigned(23 downto 0);
-	signal buttonarrayin: std_logic_vector(3 downto 0);
+	signal buttonarrayin, buttonarrayout: std_logic_vector(3 downto 0);
 	signal colorselect: integer range 0 to 7 := 0;
 	signal limiter: std_logic := '0';
 	signal colortext: unsigned(31 downto 0);
@@ -79,11 +79,11 @@ architecture topArch of TOP_MODULE is
 	end component;
 
 begin
-	reset <= btnC;
+	--reset <= btnC;
 	buttonarrayin <= btnL & btnR & btnD & btnU;
 	numACTIVELEDS <= to_integer(unsigned(sw(3 downto 0)));
 
-	LIMIT_1_PRESS: process(clk, reset)
+	LIMIT_1_PRESS: process(buttonarrayout, limiter, clk, reset)
 	begin
 		if(buttonarrayout = "0000" and limiter = not ACTIVE) then
 			limiter <= ACTIVE;
@@ -111,9 +111,9 @@ begin
 
 	COLOR_SELECT: process (clk, reset)
 	begin
-		if(reset = ACTIVE) then
-			colorselect <= 0;
-		elsif(rising_edge(clk)) then
+		--if(reset = ACTIVE) then
+			--colorselect <= 0;
+		if(rising_edge(clk)) then
 			case colorselect is
 				when 0 =>
 					previewcolor <= red;
@@ -174,7 +174,7 @@ begin
 		end if;
 	end process RGB_FADE;
 
-	LIGHT_NUMACTIVELEDS: process(clk, reset)
+	LIGHT_NUMACTIVELEDS: process(clk, reset, previewcolor)
 	variable count: integer range 1 to numLEDS+1 := 1;
 	variable count2: integer range 0 to 100000000 := 0;
 	variable outputcolor: std_logic_vector(23 downto 0);
@@ -269,22 +269,22 @@ begin
 
 	MY_RGB_DRIVER: RGB_DRIVER port map(
 		clock => clk,
-		reset => btnC,
+		reset => reset,
 		rgbIn => rgbSignal,
-		rgbOut => JA
+		rgbOut => JA(7)
 	);
 
 	MY_DEBOUNCE4: DEBOUNCE4 port map(
 		inp => buttonarrayin,
 		clk => clk,
-		reset => btnC,
+		reset => reset,
 		outp => buttonarrayout
 	);
 
 	MY_SEVEN_SEG: SEVEN_SEG port map(
-		clk => clk;
-		input => colortext;
-		seg => seg;
+		clk => clk,
+		input => colortext,
+		seg => seg,
 		an => an
 	);
 

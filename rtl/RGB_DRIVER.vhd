@@ -18,12 +18,12 @@ architecture rgbArch of RGB_DRIVER is
 
 begin
 
-	RGB_SIGNAL_PUSH: process(reset, clock)
+	RGB_SIGNAL_PUSH: process(reset, clock, rgbIn)
 	variable index: integer;
 	variable cycles: integer;
 	variable termValue: integer;
 	begin
-		if(currentState /= rgbIn or reset = ACTIVE) then
+		if(rgbIn /= currentState or reset = ACTIVE) then
 			termValue := 0;
 			cycles := 0;
 			index := 0;
@@ -36,7 +36,7 @@ begin
 				else
 					termValue := 40;
 				end if;
-				
+
 				if(cycles /= 120) then
 					cycles := cycles + 1;
 					if(cycles <= termValue) then

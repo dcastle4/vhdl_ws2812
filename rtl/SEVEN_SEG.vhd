@@ -18,7 +18,7 @@ architecture rtl of SEVEN_SEG is
 	constant TERMINAL_VALUE_COUNT: integer := 100000000;
 	constant TERMINAL_VALUE_SCAN: integer := 100000;
 
-	signal reset: std_logic;
+	signal reset: std_logic := '0';
 	signal currentNumber: std_logic;
 	signal timerEnable: std_logic;
 	signal sevenSegEnable: std_logic;
@@ -121,5 +121,6 @@ begin
 
 		end if;
 
+	end process SEVENSEG;
 
 end rtl;
