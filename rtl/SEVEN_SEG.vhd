@@ -1,3 +1,15 @@
+--*********************************************************************
+--*
+--* Name: SEVEN_SEG
+--* Designer: Bradford Jackson
+--*
+--* Description: This seven segment driver module takes in a 32 bit 
+--* 		 input and outputs the corresponding symbols on the
+--*		 four character slots of the seven segment display.
+--*		 The driver module supports all characters and 
+--*		 numbers (as best as we could represent them).
+--*
+--*********************************************************************
 
 library ieee;
 use ieee.std_logic_1164.all;
@@ -14,35 +26,59 @@ end SEVEN_SEG;
 
 architecture rtl of SEVEN_SEG is
 
+	----active/terminal value count/scan declarations--------CONSTANTS
 	constant ACTIVE: std_logic := '1';
 	constant TERMINAL_VALUE_COUNT: integer := 100000000;
 	constant TERMINAL_VALUE_SCAN: integer := 100000;
 
-	signal reset: std_logic := '0';
+	----current number and enable signals----------------------SIGNALS
 	signal currentNumber: std_logic;
 	signal timerEnable: std_logic;
 	signal sevenSegEnable: std_logic;
+
 begin
 
+	--============================================================================
+	--  Main Process
+	--============================================================================
+
 	SEVENSEG: process(clk, reset)
-	variable anode: unsigned(1 downto 0);
+
+	variable anode: unsigned(1 downto 0); -- tan toggle variable
 	variable digit03, digit02, digit01, digit00: unsigned(7 downto 0);
-	variable displaydigit: unsigned(7 downto 0);
+	variable displayDigit: unsigned(7 downto 0); -- current digit to display
 	variable counter: integer range 0 to TERMINAL_VALUE_SCAN;
+
 	begin
 		if(reset = ACTIVE) then
+
 			counter := 0;
 			sevenSegEnable <= not ACTIVE;
+
 		elsif(rising_edge(clk)) then
+
+
+			-----------------------------------
+			--  Clock divider for seven seg  --
+			-----------------------------------
 			if(counter = TERMINAL_VALUE_SCAN) then
+
 				counter := 0;
 				sevenSegEnable <= ACTIVE;
+
 			else
+
 				counter := counter + 1;
 				sevenSegEnable <= not ACTIVE;
+
 			end if;
 
 			if(sevenSegEnable = ACTIVE) then
+
+
+				---------------------------------
+				-- Digital Breakout Assignment --
+				---------------------------------
 				digit03 := input(31 downto 24);
 				digit02 := input(23 downto 16);
 				digit01 := input(15 downto 8);
@@ -50,32 +86,57 @@ begin
 
 				anode := anode + 1;
 
+				---------------------------------
+				--  Anode Cycle State Machine  --
+				---------------------------------
 				case anode is
+
 					when "00" => 
+
 						an <= "1110";
 						displaydigit := digit00;
+
 					when "01" => 
+
 						an <= "1101";
 						displaydigit := digit01;
+
 					when "10" =>
+
 						an <= "1011";
 						displaydigit := digit02;
+
 					when "11" =>
+
 						an <= "0111";
 						displaydigit := digit03;
+
 					when others =>
+
 						an <= "0111";
 						displaydigit := digit00;
+
 				end case;
 
+				---------------------------------
+				--   Seg Cycle State Machine   --
+				---------------------------------
 				if(anode = "11" and digit03 = 0) then
+
 					seg <= "1111111";
+
 				elsif(anode = "10" and digit03 = 0 and digit02 = 0) then
+
 					seg <= "1111111";
+
 				elsif(anode = "01" and digit03 = 0 and digit02 = 0 and digit01 = 0) then
+
 					seg <= "1111111";
+
 				else
-					case displaydigit is
+
+					case displaydigit is -- binary to seven seg
+
 						when X"23" => seg <= "0100100"; --Z
 						when X"22" => seg <= "0010001"; --Y
 						when X"21" => seg <= "0001000"; --X
@@ -113,6 +174,7 @@ begin
 						when X"01" => seg <= "1111001"; --1
 						when X"00" => seg <= "1000000"; --0
 						when others => seg <= "1111111";
+
 					end case;
 				end if;
 

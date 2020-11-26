@@ -1,3 +1,12 @@
+--*********************************************************************
+--*
+--* Name: DEBOUNCE4
+--* Designer: Daniel Castle & Bradford Jackson
+--*
+--* Description: This module takes in a 4 bit button input and 
+--*		 debounces it using buffers and a clock divider.
+--*
+--*********************************************************************
 
 library ieee;
 use ieee.std_logic_1164.all;
@@ -12,39 +21,62 @@ entity DEBOUNCE4 is
 end DEBOUNCE4;
 
 architecture rtl of DEBOUNCE4 is
+
+	----active/cycle declarations------------------------------CONSTANTS
 	constant ACTIVE: std_logic := '1';
 	constant cycles: integer := 580000;
+
+	----enable/buffers/startover---------------------------------SIGNALS
 	signal enable: std_logic;
 	signal delay1, delay2, delay3: std_logic_vector(3 downto 0) := "0000";
 	signal startover: std_logic := '0';
 
 begin
-	
-	process(clk, reset)
+
+	--============================================================================
+	--  Main State Machine Process
+	--============================================================================
+	DEBOUNCE: process(clk, reset)
+
 	variable count: integer range 0 to cycles := 0;
+
 	begin
+
 		if(reset = ACTIVE) then
+
 			delay1 <= "0000";
 			delay2 <= "0000";
 			delay3 <= "0000";
+
 		elsif(rising_edge(clk)) then
+
 			if(count = cycles) then
+
 				enable <= ACTIVE;
 				count := 0;
+
 			else
+
 				enable <= not ACTIVE;
 				count := count + 1;
+
 			end if;
 
 			if(enable = ACTIVE) then
+
 				delay1 <= inp;
 				delay2 <= delay1;
 				delay3 <= delay2;
+
 			end if;
 
 		end if;
-	end process;
+	end process DEBOUNCE;
 
+	--============================================================================
+	--  Direct Signal Assignment
+	--============================================================================
 	outp <= delay1 and delay2 and delay3;
+
 
 end rtl;
