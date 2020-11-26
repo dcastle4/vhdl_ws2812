@@ -1,6 +1,6 @@
 # WS2812 RGB LED Controller and Serializer in VHDL
 
-[image](doc/image.jpg?raw=true)
+![image](doc/image.jpg?raw=true)
 
 This is a WS2812 RGB LED controller and serializer written in VHDL for Digilent's Basys3 FPGA board. It was created by Bradford Jackson and I for the final project in CpE 3020 [VHDL Design with FPGAs] at Kennesaw State University in Fall 2019. 
 
